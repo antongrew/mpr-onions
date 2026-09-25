@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mpr-onion"
+version = "1.0.0"
+description = "Reference implementation of the MPR Onion (Multi Poly Reply Onion) packet format"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Anton Grewenig" }]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Topic :: Security :: Cryptography",
+  "Intended Audience :: Science/Research",
+]
+# Every cryptographic primitive (ChaCha20, ChaCha20-Poly1305, X25519, HKDF,
+# HMAC, SHA-256) comes from `cryptography`.
+dependencies = ["cryptography>=42"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["format"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 96
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E741"]   # l is the paper's symbol for path length
