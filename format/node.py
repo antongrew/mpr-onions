@@ -59,7 +59,7 @@ class Peeled:
 @dataclass
 class Node:
     node_id: IPv4Address
-    sk: bytes
+    sk: pke.SecretKey          # was: sk: bytes
     pk: bytes
     online: bool = True
 
@@ -116,7 +116,7 @@ class CommitteeResponse:
 @dataclass
 class CommitteeMember:
     node_id: IPv4Address
-    sk: bytes
+    sk: pke.SecretKey          # was: sk: bytes
     pk: bytes
     available: bool = True     # reachable and willing to answer
 

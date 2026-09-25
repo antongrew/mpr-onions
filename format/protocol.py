@@ -10,8 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from ipaddress import IPv4Address
 
-from .. import address, ae
-from .. import header as hd
+from . import address, ae
+from . import header as hd
 from . import payload as pl
 from .network import Network
 from .node import Peeled

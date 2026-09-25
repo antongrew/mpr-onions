@@ -9,11 +9,11 @@ from __future__ import annotations
 import sys
 import traceback
 
-from .. import address, ae, sharing
-from .. import header as hd
+from . import address, ae, sharing
+from . import header as hd
 from . import payload as pl, pke
-from .. import primitives as pr
-from .. import protocol as proto
+from . import primitives as pr
+from . import protocol as proto
 from .network import Network
 from .node import DropError
 from .onion import Onion, StoredHeader

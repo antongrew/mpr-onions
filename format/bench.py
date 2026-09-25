@@ -20,12 +20,12 @@ import textwrap
 import time
 from dataclasses import dataclass
 
-from .. import ae, pke
-from .. import header as hd
-from .. import node as nd
-from .. import payload as pl
-from .. import primitives as pr
-from .. import protocol as proto
+from . import ae, pke
+from . import header as hd
+from . import node as nd
+from . import payload as pl
+from . import primitives as pr
+from . import protocol as proto
 from .network import Network
 from .params import ROLE_REPLICATION, Params
 from .report import Report, crypto_versions, environment
