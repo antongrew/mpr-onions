@@ -29,8 +29,6 @@ from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
-    NoEncryption,
-    PrivateFormat,
     PublicFormat,
 )
 
@@ -47,15 +45,26 @@ def _raw_pk(key: X25519PrivateKey) -> bytes:
 
 # ---------------------------------------------------------------- keys ------
 @dataclass(frozen=True)
+class SecretKey:
+    """A party's private key, loaded once and kept in memory, as a real node
+    would.  Loading an X25519 key from its raw bytes derives the public key,
+    a full scalar multiplication; doing that on every decryption would double
+    the public-key cost of a hop."""
+
+    key: X25519PrivateKey
+    pk: bytes
+
+
+@dataclass(frozen=True)
 class KeyPair:
-    sk: bytes
+    sk: SecretKey
     pk: bytes
 
     @staticmethod
     def generate() -> KeyPair:
         key = X25519PrivateKey.generate()
-        sk = key.private_bytes(Encoding.Raw, PrivateFormat.Raw, NoEncryption())
-        return KeyPair(sk, _raw_pk(key))
+        pk = _raw_pk(key)
+        return KeyPair(SecretKey(key, pk), pk)
 
 
 def ct_len(plain_len: int) -> int:
@@ -76,15 +85,17 @@ def encrypt(pk: bytes, plaintext: bytes) -> bytes:
     return epk + _aead(shared, epk, pk).encrypt(_NONCE, plaintext, None)
 
 
-def decrypt(sk: bytes, ciphertext: bytes) -> bytes | None:
-    """Dec_sk(c) -> plaintext, or None if the ciphertext is not for us."""
+def decrypt(sk: SecretKey, ciphertext: bytes) -> bytes | None:
+    """Dec_sk(c) -> plaintext, or None if the ciphertext is not for us.
+
+    Exactly one X25519 operation: the exchange with the ephemeral key.
+    """
     if len(ciphertext) < OVERHEAD:
         return None
     epk, body = ciphertext[:EPK_LEN], ciphertext[EPK_LEN:]
     try:
-        key = X25519PrivateKey.from_private_bytes(sk)
         # exchange() rejects low-order points (all-zero shared secret).
-        shared = key.exchange(X25519PublicKey.from_public_bytes(epk))
-        return _aead(shared, epk, _raw_pk(key)).decrypt(_NONCE, body, None)
+        shared = sk.key.exchange(X25519PublicKey.from_public_bytes(epk))
+        return _aead(shared, epk, sk.pk).decrypt(_NONCE, body, None)
     except (InvalidTag, ValueError):
         return None
